@@ -7,10 +7,13 @@ import com.library.project.repository.BookRepository;
 import com.library.project.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
+import java.util.List; // Thêm thư viện này để dùng List ngắn gọn
 
 @Service
 public class LoanService {
+
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
 
@@ -62,4 +65,15 @@ public class LoanService {
 
         return loanRepository.save(loan);
     }
+
+    // 3. Lấy tất cả phiếu mượn (Cho Admin)
+    public List<Loan> getAllLoans() {
+        return loanRepository.findAll();
+    }
+
+    // 4. Lấy phiếu mượn theo ID độc giả (Cho Sinh viên) -> HÀM NÀY PHẢI NẰM TRONG CLASS
+    public List<Loan> getLoansByReaderId(Long readerId) {
+        return loanRepository.findByReaderId(readerId);
+    }
+
 }

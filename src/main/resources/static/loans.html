@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Mượn Trả - UniLib</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root { --primary-color: #4f46e5; --sidebar-width: 260px; --bg-color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: white; border-right: 1px solid #e5e7eb; padding: 20px; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link { color: #64748b; padding: 12px 15px; border-radius: 10px; font-weight: 500; margin-bottom: 5px; display: flex; align-items: center; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background-color: #eef2ff; color: var(--primary-color); }
+        .nav-link i { margin-right: 12px; width: 20px; text-align: center; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; }
+        .table-container { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .status-borrowing { background-color: #e0e7ff; color: #4338ca; }
+        .status-returned { background-color: #dcfce7; color: #166534; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand-logo"><i class="fas fa-layer-group me-2"></i> UniLib</div>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-link" href="admin.html"><i class="fas fa-book"></i> Quản lý Sách</a>
+        <a class="nav-link" href="users.html"><i class="fas fa-users"></i> Độc giả</a>
+        <a class="nav-link active" href="loans.html"><i class="fas fa-clipboard-list"></i> Mượn Trả</a>
+        <div style="margin-top: auto; padding-top: 100%;">
+            <a class="nav-link text-danger" href="index.html"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0">Quản lý Mượn Trả</h3>
+            <p class="text-muted m-0">Theo dõi quá trình lưu thông sách</p>
+        </div>
+        <button class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm" onclick="openLoanModal()">
+            <i class="fas fa-plus me-2"></i> Tạo phiếu mượn
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card border-primary">
+                <h6 class="text-uppercase text-muted small fw-bold">Đang mượn</h6>
+                <h2 class="fw-bold text-primary m-0" id="count-borrowing">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card border-success" style="border-left-color: #10b981 !important;">
+                <h6 class="text-uppercase text-muted small fw-bold">Đã trả</h6>
+                <h2 class="fw-bold text-success m-0" id="count-returned">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover align-middle">
+            <thead class="bg-light">
+            <tr class="text-secondary small text-uppercase">
+                <th>ID Phiếu</th>
+                <th>Người mượn</th>
+                <th>Sách mượn</th>
+                <th>Ngày mượn</th>
+                <th>Hạn trả</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Hành động</th>
+            </tr>
+            </thead>
+            <tbody id="loan-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hàm format ngày tháng cho đẹp (Năm-Tháng-Ngày)
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        return dateString; // Backend trả về YYYY-MM-DD là chuẩn rồi
+    }
+
+    async function loadLoans() {
+        try {
+            const res = await fetch('/api/loans');
+            const loans = await res.json();
+
+            const tbody = document.getElementById('loan-table-body');
+            tbody.innerHTML = '';
+
+            let countBorrowing = 0;
+            let countReturned = 0;
+
+            loans.forEach(loan => {
+                const isBorrowing = loan.status === 'BORROWING';
+                if (isBorrowing) countBorrowing++; else countReturned++;
+
+                const statusBadge = isBorrowing
+                    ? `<span class="status-badge status-borrowing">Đang mượn</span>`
+                    : `<span class="status-badge status-returned">Đã trả</span>`;
+
+                // Nút bấm: Nếu đang mượn thì hiện nút "Trả sách", nếu trả rồi thì hiện "Hoàn tất"
+                const actionBtn = isBorrowing
+                    ? `<button class="btn btn-sm btn-outline-primary fw-bold" onclick="returnBook(${loan.id}, '${loan.book.title}', '${loan.reader.fullName}')">
+                        <i class="fas fa-undo me-1"></i> Trả sách
+                       </button>`
+                    : `<span class="text-muted small"><i class="fas fa-check"></i> Hoàn tất</span>`;
+
+                const row = `
+                    <tr>
+                        <td class="text-muted">#${loan.id}</td>
+                        <td>
+                            <div class="fw-bold">${loan.reader ? loan.reader.fullName : 'Unknown'}</div>
+                            <div class="small text-muted">Mã: ${loan.reader ? loan.reader.readerCode : '---'}</div>
+                        </td>
+                        <td class="fw-bold text-primary">${loan.book ? loan.book.title : 'Unknown'}</td>
+                        <td>${formatDate(loan.borrowDate)}</td>
+                        <td class="fw-bold">${formatDate(loan.dueDate)}</td>
+                        <td>${statusBadge}</td>
+                        <td class="text-end">${actionBtn}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            // Cập nhật thống kê
+            document.getElementById('count-borrowing').innerText = countBorrowing;
+            document.getElementById('count-returned').innerText = countReturned;
+
+        } catch (e) { console.error(e); }
+    }
+
+    // --- HÀM TRẢ SÁCH VỚI POPUP ĐẸP ---
+    function returnBook(loanId, bookTitle, readerName) {
+        Swal.fire({
+            title: 'Xác nhận trả sách?',
+            html: `Độc giả: <b>${readerName}</b><br>Sách: <b>${bookTitle}</b>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981', // Màu xanh lá
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Đồng ý, Đã nhận sách',
+            cancelButtonText: 'Hủy bỏ'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/loans/return/${loanId}`, { method: 'POST' });
+                    const msg = await res.text();
+
+                    if (res.ok) {
+                        Swal.fire('Thành công!', 'Sách đã được trả về kho.', 'success');
+                        loadLoans(); // Tải lại bảng
+                    } else {
+                        Swal.fire('Lỗi!', msg, 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi!', 'Không thể kết nối Server', 'error');
+                }
+            }
+        });
+    }
+
+    function openLoanModal() {
+        Swal.fire({
+            title: 'Chức năng này',
+            text: 'Admin nên dùng ô Tìm kiếm ở Trang chủ để mượn sách cho nhanh nhé!',
+            icon: 'info'
+        });
+    }
+
+    loadLoans();
+</script>
+</body>
+</html>

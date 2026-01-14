@@ -1,6 +1,7 @@
 package com.library.project.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "books")
@@ -8,93 +9,69 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Mã sách
+    private Long id;
 
-    private String title;             // Tên sách
-    private Integer publishYear;      // Năm xuất bản
-    private String publisher;         // Nhà xuất bản
-    private Integer totalQuantity;    // Tổng số lượng
-    private Integer availableQuantity;// Số lượng còn lại
-    private Double price;             // Giá tiền
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    private String image;
 
-    // --- Quan hệ ---
+    @Column(nullable = false)
+    private String title;
+
     @ManyToOne
-    @JoinColumn(name = "author_id") // Khóa ngoại trỏ về Tác giả
+    @JoinColumn(name = "author_id")
+    @JsonIgnoreProperties("books")
     private Author author;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id") // Khóa ngoại trỏ về Thể loại
-    private Category category;
+    @Column(name = "category")
+    private String category; // Lưu mã như: "CNTT", "KINHTE",...
 
-    public Long getId() {
-        return id;
-    }
+    private double price;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "available_quantity")
+    private int availableQuantity;
 
-    public String getTitle() {
-        return title;
-    }
+    @Column(name = "total_quantity")
+    private int totalQuantity;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    private Integer publishYear;
+    private String publisher;
 
-    public Integer getPublishYear() {
-        return publishYear;
-    }
+    // Constructor mặc định
+    public Book() {}
 
-    public void setPublishYear(Integer publishYear) {
-        this.publishYear = publishYear;
-    }
+    // Getters và Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getPublisher() {
-        return publisher;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
-    }
+    public Author getAuthor() { return author; }
+    public void setAuthor(Author author) { this.author = author; }
 
-    public Integer getTotalQuantity() {
-        return totalQuantity;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public void setTotalQuantity(Integer totalQuantity) {
-        this.totalQuantity = totalQuantity;
-    }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 
-    public Integer getAvailableQuantity() {
-        return availableQuantity;
-    }
+    public int getAvailableQuantity() { return availableQuantity; }
+    public void setAvailableQuantity(int availableQuantity) { this.availableQuantity = availableQuantity; }
 
-    public void setAvailableQuantity(Integer availableQuantity) {
-        this.availableQuantity = availableQuantity;
-    }
+    public int getTotalQuantity() { return totalQuantity; }
+    public void setTotalQuantity(int totalQuantity) { this.totalQuantity = totalQuantity; }
 
-    public Double getPrice() {
-        return price;
-    }
+    public Integer getPublishYear() { return publishYear; }
+    public void setPublishYear(Integer publishYear) { this.publishYear = publishYear; }
 
-    public void setPrice(Double price) {
-        this.price = price;
-    }
+    public String getPublisher() { return publisher; }
+    public void setPublisher(String publisher) { this.publisher = publisher; }
 
-    public Author getAuthor() {
-        return author;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setAuthor(Author author) {
-        this.author = author;
-    }
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
 }

@@ -11,63 +11,40 @@ public class Author {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Mã tác giả
+    private Long id;
 
-    private String fullName;    // Tên tác giả
-    private String penName;     // Bút danh
-    private LocalDate dob;      // Ngày sinh
-    private String nationality; // Quốc tịch
+    @Column(nullable = false)
+    private String fullName;
 
-    // Để tiện sau này lấy danh sách sách của ông này (Optional)
+    // Các trường này của bạn rất tốt, hãy giữ lại
+    private String penName;
+    private LocalDate dob;
+    private String nationality;
+
+    // --- QUAN TRỌNG: @JsonIgnore ở đây giúp chặn lỗi Server ---
     @OneToMany(mappedBy = "author")
     @JsonIgnore
     private List<Book> books;
 
-    public Long getId() {
-        return id;
-    }
+    // Constructor mặc định
+    public Author() {}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // Getters và Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getPenName() { return penName; }
+    public void setPenName(String penName) { this.penName = penName; }
 
-    public String getPenName() {
-        return penName;
-    }
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
 
-    public void setPenName(String penName) {
-        this.penName = penName;
-    }
+    public String getNationality() { return nationality; }
+    public void setNationality(String nationality) { this.nationality = nationality; }
 
-    public LocalDate getDob() {
-        return dob;
-    }
-
-    public void setDob(LocalDate dob) {
-        this.dob = dob;
-    }
-
-    public String getNationality() {
-        return nationality;
-    }
-
-    public void setNationality(String nationality) {
-        this.nationality = nationality;
-    }
-
-    public List<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(List<Book> books) {
-        this.books = books;
-    }
+    public List<Book> getBooks() { return books; }
+    public void setBooks(List<Book> books) { this.books = books; }
 }

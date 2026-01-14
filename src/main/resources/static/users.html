@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Độc Giả - UniLib</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bootstrap-4/bootstrap-4.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+    <style>
+        :root { --primary-color: #4f46e5; --sidebar-width: 260px; --bg-color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: white; border-right: 1px solid #e5e7eb; padding: 20px; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link { color: #64748b; padding: 12px 15px; border-radius: 10px; font-weight: 500; margin-bottom: 5px; display: flex; align-items: center; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background-color: #eef2ff; color: var(--primary-color); }
+        .nav-link i { margin-right: 12px; width: 20px; text-align: center; }
+        .brand-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; }
+        .table-container { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .avatar-circle { width: 40px; height: 40px; background-color: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand-logo"><i class="fas fa-layer-group me-2"></i> UniLib</div>
+    <nav class="nav flex-column">
+        <a class="nav-link " href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-link" href="admin.html"><i class="fas fa-book"></i> Quản lý Sách</a>
+        <a class="nav-link active" href="users.html"><i class="fas fa-users"></i> Độc giả</a> <a class="nav-link" href="loans.html"><i class="fas fa-clipboard-list"></i> Mượn Trả</a>
+        <div style="margin-top: auto; padding-top: 100%;">
+            <a class="nav-link text-danger" href="index.html"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold m-0">Danh sách Độc Giả</h3>
+            <p class="text-muted m-0">Quản lý sinh viên và giảng viên</p>
+        </div>
+        <button class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm" onclick="resetForm()" data-bs-toggle="modal" data-bs-target="#userModal">
+            <i class="fas fa-user-plus me-2"></i> Thêm độc giả
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-hover align-middle">
+            <thead class="bg-light">
+            <tr class="text-secondary small text-uppercase">
+                <th>ID</th>
+                <th>Họ và Tên</th>
+                <th>Mã Thẻ (Code)</th>
+                <th>Số Điện Thoại</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody id="user-table-body">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thêm Độc Giả Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Họ và Tên</label>
+                        <input type="text" id="fullName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Mã Thẻ (MSSV/Code)</label>
+                        <input type="text" id="readerCode" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Tên đăng nhập (Username)</label>
+                        <input type="text" id="username" class="form-control" placeholder="Để đăng nhập hệ thống" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="fw-bold small text-muted">Số điện thoại</label>
+                        <input type="text" id="phone" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary fw-bold" onclick="saveUser()">Lưu thông tin</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    function deleteBook(id) {
+        Swal.fire({
+            title: 'Xóa cuốn sách này?',
+            text: "Dữ liệu sách sẽ mất vĩnh viễn!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Xóa luôn',
+            cancelButtonText: 'Giữ lại'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        Swal.fire('Thành công!', 'Sách đã được xóa.', 'success');
+                        loadBooks();
+                    } else {
+                        Swal.fire('Lỗi!', 'Không thể xóa (Có thể sách đang được mượn).', 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi server!', '', 'error');
+                }
+            }
+        });
+    }
+
+
+    let currentId = null;
+
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/readers');
+            const users = await res.json();
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                // Tạo avatar chữ cái đầu
+                const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U';
+
+                const row = `
+                    <tr>
+                        <td class="text-muted">#${user.id}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle">${initial}</div>
+                                <div>
+                                    <div class="fw-bold text-dark">${user.fullName}</div>
+                                    <div class="small text-muted">@${user.username}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="fw-bold text-primary">${user.readerCode}</td>
+                        <td>${user.phoneNumber || '---'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-light text-primary" onclick="editUser(${user.id})"><i class="fas fa-pen"></i></button>
+                            <button class="btn btn-sm btn-light text-danger" onclick="deleteUser(${user.id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    async function saveUser() {
+        const data = {
+            fullName: document.getElementById('fullName').value,
+            readerCode: document.getElementById('readerCode').value,
+            username: document.getElementById('username').value,
+            phoneNumber: document.getElementById('phone').value
+        };
+
+        let url = '/api/readers';
+        let method = 'POST';
+        if (currentId) {
+            url = `/api/readers/${currentId}`;
+            method = 'PUT';
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if(res.ok) { alert("Thành công!"); location.reload(); }
+            else alert("Lỗi lưu dữ liệu!");
+        } catch(e) { console.error(e); }
+    }
+
+    async function editUser(id) {
+        const res = await fetch(`/api/readers/${id}`);
+        const user = await res.json();
+
+        document.getElementById('fullName').value = user.fullName;
+        document.getElementById('readerCode').value = user.readerCode;
+        document.getElementById('username').value = user.username;
+        document.getElementById('phone').value = user.phoneNumber;
+
+        // Username thường không cho sửa, nên disable nó đi
+        document.getElementById('username').disabled = true;
+
+        currentId = id;
+        document.getElementById('modalTitle').innerText = "Cập nhật Độc Giả";
+        new bootstrap.Modal(document.getElementById('userModal')).show();
+    }
+
+function deleteUser(id) {
+        Swal.fire({
+            title: 'Bạn có chắc không?',
+            text: "Hành động này sẽ xóa độc giả khỏi hệ thống vĩnh viễn!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Vâng, Xóa ngay!',
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/readers/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        Swal.fire('Đã xóa!', 'Độc giả đã bị xóa.', 'success');
+                        loadUsers();
+                    } else {
+                        Swal.fire('Không thể xóa!', 'Độc giả này đang mượn sách hoặc có dữ liệu liên quan.', 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi!', 'Lỗi kết nối server', 'error');
+                }
+            }
+        });
+    }
+
+    function resetForm() {
+        currentId = null;
+        document.getElementById('userForm').reset();
+        document.getElementById('username').disabled = false;
+        document.getElementById('modalTitle').innerText = "Thêm Độc Giả Mới";
+    }
+
+    loadUsers();
+</script>
+</body>
+</html>
