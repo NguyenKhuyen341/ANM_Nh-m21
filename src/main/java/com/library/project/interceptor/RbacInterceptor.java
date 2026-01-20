@@ -48,14 +48,14 @@ public class RbacInterceptor implements HandlerInterceptor {
 
             // 2. Chặn hành động XÓA SÁCH (Sửa câu thông báo ở đây)
             if (path.startsWith("/api/books") && method.equals("DELETE")) {
-                // 👇 ĐÂY LÀ CHỖ BẠN CẦN SỬA CHỮ 👇
-                response.sendError(403, "Bạn không thể xóa sách được! Chỉ Admin mới có quyền này.");
+                // Sửa câu thông báo cho thân thiện
+                response.sendError(403, "⚠️ Bạn không thể xóa sách! Chỉ Admin mới có quyền này.");
                 return false;
             }
 
             // 3. Chặn xóa User
-            if (path.startsWith("/api/users") && method.equals("DELETE")) {
-                response.sendError(403, "Thủ thư không được xóa người dùng!");
+            if ((path.startsWith("/api/users") || path.startsWith("/api/readers")) && method.equals("DELETE")) {
+                response.sendError(403, "Bạn không thể xóa tài khoản! Hãy báo cáo lên Admin.");
                 return false;
             }
 

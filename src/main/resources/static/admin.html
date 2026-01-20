@@ -288,21 +288,48 @@ async function saveBook() {
         }
     }
 
-    function deleteBook(id) {
-        Swal.fire({
-            title: 'Xóa sách?', text: "Không thể hoàn tác!", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Xóa', cancelButtonText: 'Hủy'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
-                    if (res.ok) { Swal.fire('Đã xóa!', '', 'success'); loadBooks(); }
-                    else { Swal.fire('Lỗi', 'Sách đang được mượn', 'error'); }
-                } catch (e) { Swal.fire('Lỗi', '', 'error'); }
-            }
-        });
-    }
+function deleteBook(id) {
+    Swal.fire({
+        title: 'Bạn có chắc chắn?',
+        text: "Hành động này không thể hoàn tác!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Vâng, xóa nó!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Gửi lệnh xóa
+            fetch(`/api/books/${id}`, {
+                method: 'DELETE'
+            })
+            .then(async response => {
+                // --- ĐOẠN CODE QUAN TRỌNG ĐỂ BẮT LỖI 403 ---
+                if (response.status === 403) {
+                    // Nếu bị chặn quyền (403 Forbidden)
+                    const data = await response.json(); // Đọc tin nhắn từ Server
+                    Swal.fire(
+                        'Bị từ chối!',
+                        data.message || 'Bạn không có quyền thực hiện thao tác này!',
+                        'error'
+                    );
+                    return; // Dừng lại, không làm gì thêm
+                }
 
+                if (response.ok) {
+                    Swal.fire('Đã xóa!', 'Sách đã bị xóa khỏi kho.', 'success');
+                    loadBooks(); // Tải lại danh sách
+                } else {
+                    Swal.fire('Lỗi!', 'Không thể xóa sách.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Lỗi!', 'Mất kết nối tới máy chủ.', 'error');
+            });
+        }
+    })
+}
     function resetForm() {
         currentEditingId = null;
         document.getElementById('addBookForm').reset();
