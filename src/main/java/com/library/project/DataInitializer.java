@@ -2,68 +2,59 @@ package com.library.project;
 
 import com.library.project.entity.*;
 import com.library.project.repository.*;
-import com.library.project.service.LoanService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
 
+    private final UserRepository userRepository;
+    private final LibrarianRepository librarianRepository;
     private final ReaderRepository readerRepository;
-    private final BookRepository bookRepository;
-    private final AuthorRepository authorRepository;
-    private final LoanService loanService;
 
-    public DataInitializer(ReaderRepository readerRepository,
-                           BookRepository bookRepository,
-                           AuthorRepository authorRepository,
-                           LoanService loanService) {
+    public DataInitializer(UserRepository userRepository, LibrarianRepository librarianRepository, ReaderRepository readerRepository) {
+        this.userRepository = userRepository;
+        this.librarianRepository = librarianRepository;
         this.readerRepository = readerRepository;
-        this.bookRepository = bookRepository;
-        this.authorRepository = authorRepository;
-        this.loanService = loanService;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        // KIỂM TRA: Nếu kho sách chưa có gì (count == 0) thì mới tạo
-        if (bookRepository.count() == 0) {
+        if (userRepository.findByUsername("admin") == null) {
+            System.out.println("---- ĐANG KHỞI TẠO ADMIN VÀ DỮ LIỆU MẪU ----");
 
-            // 1. Thêm Tác giả mẫu
-            Author author = new Author();
-            author.setFullName("Nguyễn Nhật Ánh");
-            author.setPenName("AnhNN");
-            authorRepository.save(author);
+            // 1. Tạo ADMIN
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword("123");
+            admin.setFullName("Quản Trị Viên");
+            admin.setRole("ADMIN");
+            admin.setStatus("ACTIVE");
+            userRepository.save(admin);
 
-            // 2. Thêm Độc giả mẫu
+            // 2. Tạo THỦ THƯ (Nhân viên)
+            Librarian lib = new Librarian();
+            lib.setUsername("thuthu");
+            lib.setPassword("123");
+            lib.setFullName("Cô Thủ Thư");
+            lib.setRole("LIBRARIAN");
+            lib.setStaffCode("NV001");
+            lib.setStatus("ACTIVE");
+            librarianRepository.save(lib); // Lưu vào bảng Librarian (tự động lưu vào User)
+
+            // 3. Tạo ĐỘC GIẢ (Sinh viên)
             Reader reader = new Reader();
-            reader.setUsername("reader01");
-            reader.setPassword("123456");
-            reader.setFullName("Nguyễn Văn A");
-            reader.setReaderCode("DG001");
+            reader.setUsername("sinhvien");
+            reader.setPassword("123");
+            reader.setFullName("Nguyễn Văn Sinh Viên");
+            reader.setRole("READER");
+            reader.setReaderCode("SV2024");
+            reader.setStatus("ACTIVE");
             readerRepository.save(reader);
 
-            // 3. Thêm Sách mẫu
-            Book book = new Book();
-            book.setTitle("Cho tôi xin một vé đi tuổi thơ");
-            book.setAuthor(author);
-            book.setTotalQuantity(10);
-            book.setAvailableQuantity(10);
-            bookRepository.save(book);
-
-            System.out.println("---- ĐÃ KHỞI TẠO DỮ LIỆU MẪU THÀNH CÔNG ----");
-
-            // 4. Test Mượn sách (ĐỂ TRONG NÀY MỚI DÙNG ĐƯỢC BIẾN reader VÀ book)
-            try {
-                loanService.createLoan(reader, book);
-                System.out.println("---- ĐÃ TẠO PHIẾU MƯỢN MẪU THÀNH CÔNG ----");
-            } catch (Exception e) {
-                System.out.println("Lỗi mượn sách: " + e.getMessage());
-            }
-
+            System.out.println("---- ĐÃ TẠO XONG: admin/123 ----");
         } else {
-            // Nếu dữ liệu có rồi thì thôi, không làm gì cả
-            System.out.println("---- DỮ LIỆU ĐÃ CÓ SẴN (SKIP DATA SEEDING) ----");
+            System.out.println("---- Dữ liệu đã có sẵn, không tạo lại nữa ----");
         }
     }
 }

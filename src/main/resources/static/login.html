@@ -127,10 +127,17 @@
             const data = await res.json();
 
             if (data.status === 'success') {
-                // Lưu thông tin người dùng
+                // Lưu thông tin người dùng vào bộ nhớ trình duyệt
                 localStorage.setItem('currentUser', JSON.stringify(data));
 
-                // --- THAY ĐỔI Ở ĐÂY: Dùng Popup đẹp thay vì alert ---
+                // Lưu thêm các thông tin quan trọng để dùng sau này
+                localStorage.setItem('ROLE', data.role);
+                localStorage.setItem('FULLNAME', data.fullName);
+                if (data.readerId) {
+                    localStorage.setItem('readerId', data.readerId);
+                }
+
+                // Popup thông báo thành công đẹp mắt
                 Swal.fire({
                     icon: 'success',
                     title: 'Đăng nhập thành công!',
@@ -138,16 +145,22 @@
                     timer: 1500, // Tự tắt sau 1.5 giây
                     showConfirmButton: false
                 }).then(() => {
-                    // Chuyển trang sau khi popup tắt
-                    if (data.role === 'ADMIN') {
+                    // --- PHẦN QUAN TRỌNG ĐÃ ĐƯỢC SỬA ---
+                    // Phân luồng chuyển hướng dựa trên Role
+                    if (data.role === 'ADMIN' || data.role === 'LIBRARIAN') {
+                        // Cả Admin và Thủ thư đều vào trang Dashboard quản lý
                         window.location.href = 'dashboard.html';
+                    } else if (data.role === 'READER') {
+                        // Sinh viên vào trang dành riêng cho sinh viên
+                        window.location.href = 'student-dashboard.html';
                     } else {
+                        // Trường hợp khác (ví dụ Guest) về trang chủ
                         window.location.href = 'index.html';
                     }
                 });
 
             } else {
-                // --- THAY ĐỔI Ở ĐÂY: Dùng Toast báo lỗi góc màn hình ---
+                // Báo lỗi nếu sai mật khẩu
                 Toast.fire({
                     icon: 'error',
                     title: data.message || 'Đăng nhập thất bại!'
@@ -158,9 +171,10 @@
             console.error(error);
             Toast.fire({
                 icon: 'error',
-                title: 'Lỗi kết nối Server!'
+                title: 'Lỗi kết nối Server! Vui lòng thử lại.'
             });
         } finally {
+            // Trả lại nút bấm như cũ
             btn.innerHTML = originalText;
             btn.disabled = false;
         }

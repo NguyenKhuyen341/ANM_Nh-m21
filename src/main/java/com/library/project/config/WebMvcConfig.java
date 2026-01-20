@@ -1,23 +1,28 @@
 package com.library.project.config;
 
+import com.library.project.interceptor.RbacInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    @Autowired
+    private RbacInterceptor rbacInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // Kích hoạt Interceptor cho toàn bộ hệ thống
+        registry.addInterceptor(rbacInterceptor)
+                .addPathPatterns("/**"); // Dấu /** nghĩa là tất cả mọi ngóc ngách
+    }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Tạo đường dẫn file ảnh
-        Path uploadDir = Paths.get("./uploads");
-        String uploadPath = uploadDir.toFile().getAbsolutePath();
-
-        // Cấu hình: Khi truy cập http://localhost:8080/images/... -> Sẽ tìm trong thư mục uploads
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:/" + uploadPath + "/");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
     }
 }
