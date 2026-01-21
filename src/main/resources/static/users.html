@@ -213,31 +213,50 @@
     }
 
 function deleteUser(id) {
-        Swal.fire({
-            title: 'Bạn có chắc không?',
-            text: "Hành động này sẽ xóa độc giả khỏi hệ thống vĩnh viễn!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Vâng, Xóa ngay!',
-            cancelButtonText: 'Hủy'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const res = await fetch(`/api/readers/${id}`, { method: 'DELETE' });
-                    if (res.ok) {
-                        Swal.fire('Đã xóa!', 'Độc giả đã bị xóa.', 'success');
-                        loadUsers();
-                    } else {
-                        Swal.fire('Không thể xóa!', 'Độc giả này đang mượn sách hoặc có dữ liệu liên quan.', 'error');
-                    }
-                } catch (e) {
-                    Swal.fire('Lỗi!', 'Lỗi kết nối server', 'error');
+    Swal.fire({
+        title: 'Xác nhận xóa?',
+        text: "Hành động này không thể hoàn tác!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Xóa ngay!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Gửi lệnh xóa (Lưu ý: kiểm tra đường dẫn là /api/users hay /api/readers)
+            // Nếu trang này quản lý Sinh viên thì thường là /api/readers
+            fetch(`/api/readers/${id}`, {
+                method: 'DELETE'
+            })
+            .then(async response => {
+                // 1. BẮT LỖI 403 (CẤM QUYỀN)
+                if (response.status === 403) {
+                    const data = await response.json(); // Đọc tin nhắn từ Server
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Truy cập bị chặn!',
+                        text: data.message || 'Bạn không có quyền xóa tài khoản này!'
+                    });
+                    return; // Dừng lại ngay
                 }
-            }
-        });
-    }
+
+                // 2. XỬ LÝ THÀNH CÔNG
+                if (response.ok) {
+                    Swal.fire('Đã xóa!', 'Tài khoản đã bị xóa.', 'success');
+                    loadUsers(); // Tải lại danh sách
+                }
+                // 3. CÁC LỖI KHÁC (VD: Đang mượn sách)
+                else {
+                    Swal.fire('Lỗi!', 'Không thể xóa tài khoản này.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Lỗi server!', 'Không kết nối được tới máy chủ.', 'error');
+            });
+        }
+    })
+}
 
     function resetForm() {
         currentId = null;
